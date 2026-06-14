@@ -1,4 +1,4 @@
-# 🧪 AcidProbe — ACID Violation Detector & Concurrency Simulator
+# 🧪 ACIDProbe — ACID Violation Detector & Concurrency Simulator
 
 AcidProbe is a lightweight, educational Python-based simulator designed to model, detect, and resolve concurrency issues in database systems. It demonstrates core transactional concepts such as **Multi-Version Concurrency Control (MVCC)**, **Two-Phase Locking (2PL)**, **Deadlock Detection/Resolution**, and **Conflict Serializability**.
 
