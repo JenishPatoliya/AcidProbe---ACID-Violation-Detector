@@ -1295,7 +1295,7 @@ if run_btn and config:
 
 else:
     st.markdown("""
-    <div style="text-align:center; padding:100px 40px;">
+    <div style="text-align:center; padding:16px 40px 40px;">
         <div style="font-size:4rem; margin-bottom:20px;">🔬</div>
         <h2 style="font-family:'Space Grotesk',sans-serif; color:#e2e8f0; font-size:1.8rem; margin-bottom:12px;">
             Pick a scenario from the sidebar
