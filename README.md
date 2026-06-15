@@ -1,94 +1,141 @@
-# 🧪 ACIDProbe — Database Concurrency Simulator & ACID Detector
+<div align="center">
+  
+# 🧪 AcidProbe
 
-AcidProbe is an educational, interactive database concurrency simulator designed to visualize and analyze transactional isolation and conflict serializability. It demonstrates core database concepts such as **Multi-Version Concurrency Control (MVCC)**, **Two-Phase Locking (2PL)**, **Deadlock Detection/Resolution**, and **Conflict Serializability**.
+### A Premium Database Concurrency Simulator & ACID Violation Detector
+  
+[![Python Version](https://img.shields.io/badge/python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Streamlit App](https://img.shields.io/badge/streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![License](https://img.shields.io/github/license/JenishPatoliya/AcidProbe---ACID-Violation-Detector?style=for-the-badge&color=f472b6)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/JenishPatoliya/AcidProbe---ACID-Violation-Detector?style=for-the-badge&logo=github&color=6366f1)](https://github.com/JenishPatoliya/AcidProbe---ACID-Violation-Detector/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/JenishPatoliya/AcidProbe---ACID-Violation-Detector?style=for-the-badge&logo=github&color=c084fc)](https://github.com/JenishPatoliya/AcidProbe---ACID-Violation-Detector/network/members)
 
-The project features a premium, responsive Streamlit dashboard with step-by-step execution traces, concurrent timeline lanes, anomaly detection audits, Graphviz-based precedence and wait-for graphs, and MVCC version history logs.
+</div>
 
 ---
 
-## 🚀 Key Features
+## 📖 Overview
 
-*   **Custom MVCC Engine**: A Multi-Version Concurrency Control data store managing version chains and implementing snapshot visibility rules for different isolation levels.
-*   **Pessimistic Locking (2PL)**: A lock manager supporting Shared (`S`) and Exclusive (`X`) lock types, lock compatibility checks, lock upgrading, and active lock state logging.
-*   **Deadlock Manager**: Automatically tracks transaction dependencies via a Wait-For Graph, detects cycles using Depth-First Search (DFS), and resolves deadlocks by aborting the youngest transaction.
-*   **Anomaly Detection**: Monitors operations in real-time to identify database anomalies like *Dirty Reads*, *Non-Repeatable Reads*, and *Lost Updates*.
-*   **Serializability Checker**: Builds a Precedence (Conflict) Graph based on data conflicts and checks if the concurrent schedule is conflict-serializable.
-*   **Visual Web Dashboard**: Interactive Streamlit UI containing step-by-step trace views, dynamic timeline lane visualizations, live anomaly report metrics, Graphviz precedence/wait-for graphs, and MVCC version table outputs.
+**AcidProbe** is a premium, interactive educational tool designed to visualize database transactions, isolation levels, and ACID properties in real-time. It showcases how modern relational databases handle overlapping data operations under the hood using **Multi-Version Concurrency Control (MVCC)** and **Two-Phase Locking (2PL)**, detects scheduling anomalies (like Dirty Reads, Non-Repeatable Reads, and Lost Updates), and checks for **Conflict Serializability**.
+
+With an elegant glassmorphic dark-slate visual interface built with Streamlit, AcidProbe lets you trace transaction step cards, view transaction execution timelines, inspect active lock tables, explore Graphviz wait-for/precedence graphs, and audit MVCC version records.
+
+---
+
+## 🛠️ System Architecture
+
+AcidProbe implements a full transaction cycle with custom concurrency and recovery layers:
+
+```mermaid
+flowchart TD
+    subgraph UI ["Streamlit Web Dashboard"]
+        A[Sidebar Scenario Selector / custom config.json] -->|▶ Run Simulation| B[Core Simulator Runner]
+        B -->|1. Initializes| C[MVCC Data Store]
+        B -->|2. Registers| D[2PL Lock Manager]
+        B -->|3. Executes Steps| E[Step trace logger]
+    end
+    
+    subgraph Core ["AcidProbe Core Engine"]
+        D -->|Acquire Lock| F{Compatible?}
+        F -->|Yes| G[Read/Write to MVCC Store]
+        F -->|No| H[Block Transaction]
+        H -->|Add wait dependency| I[DFS Cycle Finder / Deadlock Detector]
+        I -->|Cycle found| J[Abort youngest victim & Rollback]
+        
+        G -->|Track reads & writes| K[Conflict Detector]
+        K -->|Analyze transaction dependency| L[Serializability Checker]
+        L -->|Build conflict graph| M[Precedence Graph Checker]
+        M -->|Cycle found| N[Schedule is Not Serializable]
+    end
+```
+
+---
+
+## 🌟 Key Features
+
+*   🛡️ **Pessimistic Concurrency (2PL Lock Manager)**: Full lock scheduler with Shared (`S`) and Exclusive (`X`) lock types. Features lock compatibility checks, auto-upgrades, and interactive wait queues.
+*   🔄 **Multi-Version Concurrency Control (MVCC)**: Keeps version chains for database values. Controls read visibility based on the active isolation level (`READ UNCOMMITTED`, `READ COMMITTED`, `REPEATABLE READ`, `SERIALIZABLE`).
+*   💀 **DFS-Based Deadlock Manager**: Dynamically monitors lock blockages using a **Wait-For Graph**. Automatically runs cycle detection and resolves deadlocks by aborting and rolling back the youngest transaction.
+*   ⚠️ **Anomaly Detector**: Automatically audits committed/uncommitted transactions for:
+    *   **Dirty Reads**: Reading uncommitted modifications.
+    *   **Non-Repeatable Reads**: Row value changes between read operations.
+    *   **Lost Updates**: Simultaneous overwriting of concurrent operations.
+*   📊 **Conflict Serializability Graph**: Constructs a precedence graph between conflicting transactions to determine conflict-serializability.
+*   🔮 **Compact Graphviz Visualizations**:
+    *   **Precedence Graph**: Highlights conflicts and highlights cycles.
+    *   **Lock Wait-For Graph**: Highlights wait dependencies (`T1 ➔ T2`).
+    *   **Deadlock Graph**: Displays the deadlock cycle state at the exact moment of rollback.
 
 ---
 
 ## 📂 Project Structure
 
 ```bash
-AcidProb/
+AcidProbe/
 ├── core/
-│   ├── data_store.py            # MVCC engine and version control
-│   ├── detector.py              # Anomaly detection checks
-│   ├── lock_manager.py          # Lock table, Wait-For Graph, DFS Deadlock checker
-│   ├── serializable_checker.py  # Conflict serializability graph and cycle checker
-│   └── transaction.py           # Transaction models and isolation properties
-├── config.json                  # Workspace custom transaction scenario config
-├── streamlit_app.py             # Streamlit application UI and visual runner
-├── .gitignore                   # Ignores pycache and virtual environments
+│   ├── data_store.py            # MVCC engine & version control chains
+│   ├── detector.py              # Anomaly inspection suite
+│   ├── lock_manager.py          # Lock table scheduler & DFS cycle detector
+│   ├── serializable_checker.py  # Precedence graph compiler
+│   └── transaction.py           # Transaction models & state controls
+├── config.json                  # Local configuration template file
+├── streamlit_app.py             # Streamlit application UI & renderer
+├── .gitignore                   # Standard Python cache/venv exclusion patterns
 └── README.md                    # Project documentation
 ```
 
 ---
 
-## 🛠️ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-
 *   Python 3.12+
 *   `pip` package manager
 
-### Installation
+### 1. Installation
+Clone the repository to your local machine:
+```bash
+git clone https://github.com/JenishPatoliya/AcidProbe---ACID-Violation-Detector.git
+cd AcidProbe---ACID-Violation-Detector
+```
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/JenishPatoliya/AcidProbe---ACID-Violation-Detector.git
-   cd AcidProbe---ACID-Violation-Detector
-   ```
+### 2. Install Dependencies
+Install the required packages:
+```bash
+pip install streamlit pandas plotly
+```
 
-2. Install dependencies (uses the `streamlit`, `pandas`, and `plotly` libraries):
-   ```bash
-   pip install streamlit pandas plotly
-   ```
-
----
-
-## 💻 Running the Simulator UI
-
-Start the Streamlit dashboard by running the following command in the project root:
-
+### 3. Run the Dashboard
+Fire up the local development server:
 ```bash
 streamlit run streamlit_app.py
 ```
-
-This launches the web interface (by default at `http://localhost:8501`), where you can:
-1. **Choose scenarios** from the sidebar dropdown (UPI Payment conflicts, deadlock race conditions, ticket overbooking, inventory checkout overselling, or side-by-side isolation level comparisons).
-2. **Define custom scenarios** by editing the local `config.json` file in your workspace, or by pasting custom JSON directly into the sidebar text area.
-3. Inspect step execution logs, interactive transaction swim lanes, serializability cycle paths, lock wait-for graphs, and MVCC versions dynamically.
+The application will launch automatically in your default browser at `http://localhost:8501`.
 
 ---
 
-## 📚 Core Database Concepts Simulated
+## 💻 Dashboard Tabs Guide
 
-### 1. Concurrency Control Mechanisms
-
-#### Multi-Version Concurrency Control (MVCC)
-In [core/data_store.py](./core/data_store.py), database records are stored as lists of versions:
-```python
-{"value": value, "ts": timestamp, "by": tx_id, "committed": bool}
-```
-Depending on the active isolation level, the transaction reads either uncommitted values, the latest committed value, or snapshot values tied to its starting timestamp (`start_ts`).
-
-#### Two-Phase Locking (2PL)
-In [core/lock_manager.py](./core/lock_manager.py), transactions request `S` or `X` locks before reading or writing data. An `S` lock is compatible with other `S` locks, but an `X` lock blocks all other readers and writers.
+| Tab | Purpose | Visualized Details |
+| :--- | :--- | :--- |
+| **⚡ Step Execution** | Operational Step-by-Step logs | Displays exact sequence of operations. Color-coded card statuses (**Green** = success, **Yellow** = blocked wait, **Red** = deadlock) with inline lock logs. |
+| **📅 Timeline View** | Concurrent scheduling timeline | Structured lane matrix detailing overlapping transactions, wait times, and operations over time. |
+| **⚠️ Anomaly Report** | Safety, serializability, & anomaly reports | Anomaly check status banners, serializability precedence graph cycles, lock wait dependencies, and deadlock cycles. |
+| **🗃️ Storage & State** | MVCC logs & database commits | Final database key-value states and table traces showing timestamp, writer ID, and commit status of every value version. |
 
 ---
 
-### 2. Transaction Isolation Levels
+## 📚 Concurrency Deep Dive
+
+### 1. Two-Phase Locking (2PL) Matrix
+The Lock Manager schedules lock grants based on request compatibility:
+
+| Requested \ Held | None | Shared (`S`) | Exclusive (`X`) |
+| :--- | :---: | :---: | :---: |
+| **Shared (`S`)** | ✅ Grant | ✅ Grant | ⏳ Wait |
+| **Exclusive (`X`)** | ✅ Grant | ⏳ Wait | ⏳ Wait |
+
+### 2. Transaction Isolation Matrix
 
 | Isolation Level | Dirty Read | Non-Repeatable Read | Lost Update |
 | :--- | :---: | :---: | :---: |
@@ -97,12 +144,15 @@ In [core/lock_manager.py](./core/lock_manager.py), transactions request `S` or `
 | **REPEATABLE READ** | ✅ Prevented | ✅ Prevented | ❌ Allowed |
 | **SERIALIZABLE** | ✅ Prevented | ✅ Prevented | ✅ Prevented |
 
+### 3. Precedence Graph Conflict Detection
+An edge $T_i \rightarrow T_j$ is drawn in the precedence graph if $T_i$ executes an operation on resource $Q$ before $T_j$, they access the same key, and at least one of their operations is a **WRITE**:
+*   **Read-Write Conflict**: $T_i$ reads $Q$, then $T_j$ writes $Q$.
+*   **Write-Read Conflict**: $T_i$ writes $Q$, then $T_j$ reads $Q$.
+*   **Write-Write Conflict**: $T_i$ writes $Q$, then $T_j$ writes $Q$.
+
+A cycle in the graph indicates a non-serializable schedule.
+
 ---
 
-### 3. Conflict Serializability (Precedence Graph)
-Determined in [core/serializable_checker.py](./core/serializable_checker.py). It detects conflicts between any two transactions $T_i$ and $T_j$ accessing the same resource $Q$:
-*   $T_i$ reads $Q$, $T_j$ writes $Q$ (Read-Write conflict)
-*   $T_i$ writes $Q$, $T_j$ reads $Q$ (Write-Read conflict)
-*   $T_i$ writes $Q$, $T_j$ writes $Q$ (Write-Write conflict)
-
-If a cycle exists in the precedence graph, the schedule is **not serializable**.
+## 🛡️ License
+Distributed under the MIT License. See `LICENSE` for more information.
