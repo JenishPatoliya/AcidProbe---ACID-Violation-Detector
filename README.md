@@ -5,12 +5,18 @@
 ### A Premium Database Concurrency Simulator & ACID Violation Detector
   
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Streamlit App](https://img.shields.io/badge/streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
-
+[![Streamlit App](https://img.shields.io/badge/streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://acidprobe---acid-violation-detector-73oz7ov9etfnlc4kj957ay.streamlit.app/)
+[![License](https://img.shields.io/github/license/JenishPatoliya/AcidProbe---ACID-Violation-Detector?style=for-the-badge&color=f472b6)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/JenishPatoliya/AcidProbe---ACID-Violation-Detector?style=for-the-badge&logo=github&color=6366f1)](https://github.com/JenishPatoliya/AcidProbe---ACID-Violation-Detector/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/JenishPatoliya/AcidProbe---ACID-Violation-Detector?style=for-the-badge&logo=github&color=c084fc)](https://github.com/JenishPatoliya/AcidProbe---ACID-Violation-Detector/network/members)
 
 </div>
 
 ---
+
+> [!TIP]
+> **Live App:** Try the simulator live in your browser at [acidprobe.streamlit.app](https://acidprobe---acid-violation-detector-73oz7ov9etfnlc4kj957ay.streamlit.app/)!
+
 
 ## 📖 Overview
 
