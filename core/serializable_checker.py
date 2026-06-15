@@ -47,7 +47,7 @@ class SerializabilityChecker:
                     # At least one must be a WRITE
                     if sa["op"] == "WRITE" or sb["op"] == "WRITE":
                         self._add_edge(sa["tid"], sb["tid"])
-                        print(f"  {sa['tid']} {sa['op']} '{sa['key']}' before {sb['tid']} {sb['op']} it  →  {sa['tid']} → {sb['tid']}")
+                        print(f"  {sa['tid']} {sa['op']} '{sa['key']}' before {sb['tid']} {sb['op']} it  ->  {sa['tid']} -> {sb['tid']}")
         else:
             # Fallback to the original transaction-based checker if steps not provided
             for i in range(len(transactions)):
@@ -74,19 +74,19 @@ class SerializabilityChecker:
                         # T1 read, T2 wrote same key
                         if key in t1.read_set and t2_has_write:
                             self._add_edge(t1.tid, t2.tid)
-                            print(f"  {t1.tid} READ '{key}' before {t2.tid} WROTE it  →  {t1.tid} → {t2.tid}")
+                            print(f"  {t1.tid} READ '{key}' before {t2.tid} WROTE it  ->  {t1.tid} -> {t2.tid}")
                             edge_added = True
 
                         # T1 wrote, T2 read same key
                         if t1_has_write and key in t2.read_set and not edge_added:
                             self._add_edge(t1.tid, t2.tid)
-                            print(f"  {t1.tid} WROTE '{key}' before {t2.tid} READ it  →  {t1.tid} → {t2.tid}")
+                            print(f"  {t1.tid} WROTE '{key}' before {t2.tid} READ it  ->  {t1.tid} -> {t2.tid}")
                             edge_added = True
 
                         # T1 wrote, T2 wrote same key
                         if t1_has_write and t2_has_write and not edge_added:
                             self._add_edge(t1.tid, t2.tid)
-                            print(f"  {t1.tid} WROTE '{key}' before {t2.tid} WROTE it →  {t1.tid} → {t2.tid}")
+                            print(f"  {t1.tid} WROTE '{key}' before {t2.tid} WROTE it ->  {t1.tid} -> {t2.tid}")
 
         print(f"\n  Final Graph: {self.graph}")
 
@@ -152,11 +152,11 @@ class SerializabilityChecker:
             print("  (empty — no conflicts)")
         for node, neighbors in self.graph.items():
             for n in neighbors:
-                print(f"  {node} ──→ {n}")
+                print(f"  {node} ---> {n}")
 
         if self.has_cycle():
             cycle = self.find_cycle_path()
-            cycle_str = " → ".join(cycle)
+            cycle_str = " -> ".join(cycle)
             print(f"\n  Cycle found : {cycle_str}")
             print(f"\n  ⚠️  Schedule is NOT SERIALIZABLE")
             print(f"  This means concurrent execution gave")

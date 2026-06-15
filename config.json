@@ -1,43 +1,50 @@
 {
-  "scenario_name": "Ultimate Correctness Stress Test",
+  "scenario_name": "Ultimate AcidProbe Final Boss",
   "isolation_level": "READ_COMMITTED",
   "initial_data": {
-    "A": 100,
-    "B": 200,
-    "C": 300
+    "A": 1000,
+    "B": 2000,
+    "C": 3000,
+    "D": 4000
   },
   "transactions": [
     {
       "tid": "T1",
       "operations": [
-        {"op":"READ","key":"A"},
-        {"op":"WRITE","key":"A","value":90},
+        {"op":"WRITE","key":"A","value":900},
         {"op":"READ","key":"B"},
         {"op":"COMMIT"}
       ]
     },
     {
-      "tid":"T2",
-      "operations":[
-        {"op":"READ","key":"B"},
-        {"op":"WRITE","key":"B","value":180},
+      "tid": "T2",
+      "operations": [
+        {"op":"WRITE","key":"B","value":1800},
+        {"op":"READ","key":"C"},
+        {"op":"COMMIT"}
+      ]
+    },
+    {
+      "tid": "T3",
+      "operations": [
+        {"op":"WRITE","key":"C","value":2700},
         {"op":"READ","key":"A"},
         {"op":"COMMIT"}
       ]
     },
     {
-      "tid":"T3",
-      "operations":[
+      "tid": "T4",
+      "operations": [
         {"op":"READ","key":"A"},
         {"op":"READ","key":"C"},
-        {"op":"WRITE","key":"C","value":250},
+        {"op":"WRITE","key":"D","value":3500},
         {"op":"COMMIT"}
       ]
     },
     {
-      "tid":"T4",
-      "operations":[
-        {"op":"READ","key":"C"},
+      "tid": "T5",
+      "operations": [
+        {"op":"READ","key":"D"},
         {"op":"READ","key":"B"},
         {"op":"COMMIT"}
       ]

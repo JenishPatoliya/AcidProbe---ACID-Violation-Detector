@@ -1,21 +1,19 @@
-# 🧪 ACIDProbe — ACID Violation Detector & Concurrency Simulator
+# 🧪 ACIDProbe — Database Concurrency Simulator & ACID Detector
 
-AcidProbe is a lightweight, educational Python-based simulator designed to model, detect, and resolve concurrency issues in database systems. It demonstrates core transactional concepts such as **Multi-Version Concurrency Control (MVCC)**, **Two-Phase Locking (2PL)**, **Deadlock Detection/Resolution**, and **Conflict Serializability**.
+AcidProbe is an educational, interactive database concurrency simulator designed to visualize and analyze transactional isolation and conflict serializability. It demonstrates core database concepts such as **Multi-Version Concurrency Control (MVCC)**, **Two-Phase Locking (2PL)**, **Deadlock Detection/Resolution**, and **Conflict Serializability**.
 
-The project features rich terminal visualizations for execution steps, transaction states, lock allocations, wait-for dependency graphs, and anomaly reports.
+The project features a premium, responsive Streamlit dashboard with step-by-step execution traces, concurrent timeline lanes, anomaly detection audits, Graphviz-based precedence and wait-for graphs, and MVCC version history logs.
 
 ---
 
 ## 🚀 Key Features
 
-*   **Custom MVCC Engine**: A Multi-Version Concurrency Control data store that manages version chains and implements snapshot visibility rules for different isolation levels.
-*   **Pessimistic Locking (2PL)**: A lock manager that supports Shared (`S`) and Exclusive (`X`) lock types, lock compatibility checks, and lock upgrading.
+*   **Custom MVCC Engine**: A Multi-Version Concurrency Control data store managing version chains and implementing snapshot visibility rules for different isolation levels.
+*   **Pessimistic Locking (2PL)**: A lock manager supporting Shared (`S`) and Exclusive (`X`) lock types, lock compatibility checks, lock upgrading, and active lock state logging.
 *   **Deadlock Manager**: Automatically tracks transaction dependencies via a Wait-For Graph, detects cycles using Depth-First Search (DFS), and resolves deadlocks by aborting the youngest transaction.
-*   **Anomaly Detection**: Monitors operations in real-time to identify database anomalies:
-    *   *Dirty Reads*
-    *   *Non-Repeatable Reads*
-    *   *Lost Updates*
-*   **Serializability Checker**: Builds a Precedence (Conflict) Graph based on data conflicts and checks if the concurrent schedule is equivalent to a serial schedule.
+*   **Anomaly Detection**: Monitors operations in real-time to identify database anomalies like *Dirty Reads*, *Non-Repeatable Reads*, and *Lost Updates*.
+*   **Serializability Checker**: Builds a Precedence (Conflict) Graph based on data conflicts and checks if the concurrent schedule is conflict-serializable.
+*   **Visual Web Dashboard**: Interactive Streamlit UI containing step-by-step trace views, dynamic timeline lane visualizations, live anomaly report metrics, Graphviz precedence/wait-for graphs, and MVCC version table outputs.
 
 ---
 
@@ -29,15 +27,9 @@ AcidProb/
 │   ├── lock_manager.py          # Lock table, Wait-For Graph, DFS Deadlock checker
 │   ├── serializable_checker.py  # Conflict serializability graph and cycle checker
 │   └── transaction.py           # Transaction models and isolation properties
-├── logger/
-│   └── terminal_logger.py       # Rich terminal printing utilities
-├── scenarios/
-│   ├── deadlock_demo.py         # Simulates and resolves a deadlock scenario
-│   └── isolation_switcher.py    # Runs the same banking withdrawal under all 4 isolation levels
-├── acidprobe.py                 # Central Launcher with CLI & Menu interfaces
-├── save_output.py               # Exporter script to save scenario outputs
-├── outputs/                     # Generated simulation outputs (.txt and .html)
-├── .gitignore                   # Ignores pycache and environments
+├── config.json                  # Workspace custom transaction scenario config
+├── streamlit_app.py             # Streamlit application UI and visual runner
+├── .gitignore                   # Ignores pycache and virtual environments
 └── README.md                    # Project documentation
 ```
 
@@ -58,53 +50,25 @@ AcidProb/
    cd AcidProbe---ACID-Violation-Detector
    ```
 
-2. Install dependencies (uses the `rich` library for terminal formatting):
+2. Install dependencies (uses the `streamlit`, `pandas`, and `plotly` libraries):
    ```bash
-   pip install rich
+   pip install streamlit pandas plotly
    ```
 
 ---
 
-## 💻 Running the Simulations
+## 💻 Running the Simulator UI
 
-### 1. Interactive Menu Launcher
-Starts the main menu launcher where you can run built-in real-world scenarios (UPI Payment, Bank Transfer race conditions, Ticket Booking, and Inventory Overselling), run the deadlock resolution demonstration, or isolate switcher checks:
-
-```bash
-python acidprobe.py
-```
-
-### 2. Run Custom Scenario directly via Config File
-Loads and runs a custom transactional schedule defined inside `config.json` directly without entering the interactive menu:
+Start the Streamlit dashboard by running the following command in the project root:
 
 ```bash
-python acidprobe.py --config config.json
+streamlit run streamlit_app.py
 ```
 
-### 3. Isolation Switcher Scenario
-Executes a concurrent withdrawal scenario under all four ANSI SQL isolation levels (`READ UNCOMMITTED`, `READ COMMITTED`, `REPEATABLE READ`, and `SERIALIZABLE`) and outputs a side-by-side comparison table showing which anomalies are prevented:
-
-```bash
-python scenarios/isolation_switcher.py
-```
-
-### 4. Deadlock Demo
-Simulates a classic deadlock scenario, visualizes the Wait-For Graph, selects the youngest transaction (`T2`) to abort, releases its locks, rolls back its modifications, and allows `T1` to complete:
-
-```bash
-python scenarios/deadlock_demo.py
-```
-
-### 5. Saving Simulation Outputs (Text & HTML)
-To run the primary scenarios (banking, deadlock, and isolation) automatically and export both plain text outputs (with ANSI color styling stripped for readability) and fully colorized HTML outputs:
-
-```bash
-python save_output.py
-```
-This generates the following files in the `outputs/` directory:
-*   `outputs/banking.txt` & `outputs/banking.html`
-*   `outputs/deadlock.txt` & `outputs/deadlock.html`
-*   `outputs/isolation.txt` & `outputs/isolation.html`
+This launches the web interface (by default at `http://localhost:8501`), where you can:
+1. **Choose scenarios** from the sidebar dropdown (UPI Payment conflicts, deadlock race conditions, ticket overbooking, inventory checkout overselling, or side-by-side isolation level comparisons).
+2. **Define custom scenarios** by editing the local `config.json` file in your workspace, or by pasting custom JSON directly into the sidebar text area.
+3. Inspect step execution logs, interactive transaction swim lanes, serializability cycle paths, lock wait-for graphs, and MVCC versions dynamically.
 
 ---
 
