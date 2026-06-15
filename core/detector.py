@@ -60,40 +60,23 @@ class AnomalyDetector:
             return False
 
         # t1 committed but t2 overwrote it
-        if t1.status == "COMMITTED" and t2.status == "COMMITTED":
-            anomaly = {
-                "type": "LOST UPDATE",
-                "description": (
-                    f"Both {t1.tid} and {t2.tid} read '{key}={t1.read_set[key]}'\n"
-                    f"  {t1.tid} wrote {t1.write_set[key]} and committed\n"
-                    f"  {t2.tid} wrote {t2.write_set[key]} and committed\n"
-                    f"  {t1.tid}'s update is LOST — overwritten by {t2.tid}"
-                ),
-                "fix": "Use REPEATABLE READ isolation level"
-            }
-            self.anomalies.append(anomaly)
-            self._print_anomaly(anomaly)
-            return True
-        return False
+        status_info = ""
+        if t1.status != "COMMITTED" or t2.status != "COMMITTED":
+            status_info = " (POTENTIAL CONFLICT due to aborted/active transaction status)"
 
-    # ─────────────────────────────────────────────
-    # CHECK 4 — PHANTOM READ
-    # T1 runs range query twice — different row count
-    # ─────────────────────────────────────────────
-    def check_phantom_read(self, transaction, query_key, first_count, second_count):
-        if first_count != second_count:
-            anomaly = {
-                "type": "PHANTOM READ",
-                "description": (
-                    f"{transaction.tid} ran range query on '{query_key}' twice — "
-                    f"first got {first_count} rows, now got {second_count} rows"
-                ),
-                "fix": "Use SERIALIZABLE isolation level"
-            }
-            self.anomalies.append(anomaly)
-            self._print_anomaly(anomaly)
-            return True
-        return False
+        anomaly = {
+            "type": "LOST UPDATE",
+            "description": (
+                f"Both {t1.tid} and {t2.tid} read '{key}={t1.read_set[key]}'\n"
+                f"  {t1.tid} wrote/attempted to write {t1.write_set[key]} (status: {t1.status})\n"
+                f"  {t2.tid} wrote/attempted to write {t2.write_set[key]} (status: {t2.status})\n"
+                f"  Lost update conflict{status_info} detected on '{key}'"
+            ),
+            "fix": "Use REPEATABLE READ isolation level"
+        }
+        self.anomalies.append(anomaly)
+        self._print_anomaly(anomaly)
+        return True
 
     # ─────────────────────────────────────────────
     # PRINT ANOMALY (formatted)
@@ -103,7 +86,7 @@ class AnomalyDetector:
 
     # ─────────────────────────────────────────────
     # FINAL REPORT
-    # ─────────────────────────────────────────────
+    # ─────────────────────────────────────
     def print_report(self):
         print("\n" + "─"*55)
         print(" ANOMALY DETECTION REPORT")
@@ -112,7 +95,6 @@ class AnomalyDetector:
         all_types = [
             "DIRTY READ",
             "NON-REPEATABLE READ",
-            "PHANTOM READ",
             "LOST UPDATE"
         ]
 

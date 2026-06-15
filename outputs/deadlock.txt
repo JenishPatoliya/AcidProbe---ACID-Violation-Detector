@@ -1,0 +1,97 @@
+
+┌────────────────────────────────────────┐
+│ 🔬 AcidProbe — ACID Violation Detector │
+│ Choose a scenario to simulate          │
+└────────────────────────────────────────┘
+
+  1  →  UPI Payment (Lost Update Check)
+  2  →  Bank Transfer Race (Opposite-Order Deadlock Check)
+  3  →  Ticket Booking (Overbooking Check)
+  4  →  Inventory Overselling (Concurrent Checkout Check)
+  5  →  Deadlock Demo (Graph Resolution Demo)
+  6  →  Isolation Level Switcher (Side-by-Side Comparison)
+  7  →  Load config.json (Custom File)
+  0  →  Exit
+
+  Choose option: 
+┌─────────────────────────────────────────────────────────┐
+│ AcidProbe — ACID Violation Detector                     │
+│ Scenario  : Deadlock — T1 and T2 waiting for each other │
+│ Isolation : READ COMMITTED                              │
+└─────────────────────────────────────────────────────────┘
+
+Initial State:
+  balance = 1000
+
+Initial State:
+  account = 500
+
+─────────────────────────────── EXECUTING STEPS ───────────────────────────────
+
+[STEP 1] T1 acquires lock on 'balance'
+🔒 T1 acquired X lock on 'balance'
+  [STEP 1] T1  READ  balance  →  1000  ✅
+  Lock Table: balance → X → [T1]
+
+[STEP 2] T2 acquires lock on 'account'
+🔒 T2 acquired X lock on 'account'
+  [STEP 2] T2  READ  account  →  500  ✅
+  Lock Table: balance → X → [T1] | account → X → [T2]
+
+[STEP 3] T1 wants lock on 'account' (held by T2)
+🔒 T1 wants X lock on 'account' — CONFLICT (T2 holds X)
+⏳ T1 waiting for T2 to release...
+  [STEP 3] T1  READ  account  ⏳
+    ⏳ T1 BLOCKED — T2 holds X lock on 'account'
+
+  Wait-For Graph:
+  T1 ──waits──→ T2
+
+[STEP 4] T2 wants lock on 'balance' (held by T1)
+🔒 T2 wants X lock on 'balance' — CONFLICT (T1 holds X)
+⏳ T2 waiting for T1 to release...
+💀 DEADLOCK — cycle detected
+💀 Aborting youngest transaction: T2
+🔓 T2 released lock on 'account'
+🔔 Woke up waiting transaction T1 (now ACTIVE)
+
+───────────────────────────────── FINAL STATE ─────────────────────────────────
+
+  balance = 1000
+  account = 500
+
+  T1 status : ACTIVE ✅
+  T2 status : ABORTED ❌ (aborted — will retry separately)
+
+    MVCC Versions of 'balance'    
+                                  
+  Value   Timestamp   Created By  
+ ──────────────────────────────── 
+  1000    0           SYSTEM      
+                                  
+
+    MVCC Versions of 'account'    
+                                  
+  Value   Timestamp   Created By  
+ ──────────────────────────────── 
+  500     0           SYSTEM      
+                                  
+
+  Press Enter to return to menu...
+┌────────────────────────────────────────┐
+│ 🔬 AcidProbe — ACID Violation Detector │
+│ Choose a scenario to simulate          │
+└────────────────────────────────────────┘
+
+  1  →  UPI Payment (Lost Update Check)
+  2  →  Bank Transfer Race (Opposite-Order Deadlock Check)
+  3  →  Ticket Booking (Overbooking Check)
+  4  →  Inventory Overselling (Concurrent Checkout Check)
+  5  →  Deadlock Demo (Graph Resolution Demo)
+  6  →  Isolation Level Switcher (Side-by-Side Comparison)
+  7  →  Load config.json (Custom File)
+  0  →  Exit
+
+  Choose option: 
+Goodbye! 👋
+

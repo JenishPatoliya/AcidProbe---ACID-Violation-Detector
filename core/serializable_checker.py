@@ -11,41 +11,82 @@ class SerializabilityChecker:
     #   T1 → T2 if T1 WROTE key before T2 READ key
     #   T1 → T2 if T1 WROTE key before T2 WROTE key
     # ─────────────────────────────────────────────
-    def build_graph(self, transactions):
+    def build_graph(self, transactions, steps=None):
         print("\n  Building Precedence Graph...")
 
-        for i in range(len(transactions)):
-            for j in range(len(transactions)):
-                if i == j:
+        self.graph = {}
+        for t in transactions:
+            self.graph[t.tid] = []
+
+        if steps is not None:
+            # Build graph from actual executed steps
+            txn_status = {t.tid: t.status for t in transactions}
+            valid_steps = []
+            for s in steps:
+                if s.get("status") != "ok":
                     continue
+                tid = s.get("tid")
+                op = s.get("op")
+                if op == "WRITE" and txn_status.get(tid) == "ABORTED":
+                    # Filter out writes from aborted transactions since they are rolled back
+                    continue
+                if op in ["READ", "WRITE"]:
+                    valid_steps.append(s)
+            
+            for i in range(len(valid_steps)):
+                for j in range(i + 1, len(valid_steps)):
+                    sa = valid_steps[i]
+                    sb = valid_steps[j]
+                    
+                    if sa["tid"] == sb["tid"]:
+                        continue
+                        
+                    if sa["key"] != sb["key"]:
+                        continue
+                        
+                    # At least one must be a WRITE
+                    if sa["op"] == "WRITE" or sb["op"] == "WRITE":
+                        self._add_edge(sa["tid"], sb["tid"])
+                        print(f"  {sa['tid']} {sa['op']} '{sa['key']}' before {sb['tid']} {sb['op']} it  →  {sa['tid']} → {sb['tid']}")
+        else:
+            # Fallback to the original transaction-based checker if steps not provided
+            for i in range(len(transactions)):
+                for j in range(len(transactions)):
+                    if i == j:
+                        continue
 
-                t1 = transactions[i]
-                t2 = transactions[j]
+                    t1 = transactions[i]
+                    t2 = transactions[j]
 
-                # find common keys both transactions touched
-                t1_keys = set(list(t1.read_set.keys()) + list(t1.write_set.keys()))
-                t2_keys = set(list(t2.read_set.keys()) + list(t2.write_set.keys()))
-                common_keys = t1_keys & t2_keys
+                    # find common keys both transactions touched (excluding writes from aborted ones)
+                    t1_write_keys = [] if t1.status == "ABORTED" else list(t1.write_set.keys())
+                    t2_write_keys = [] if t2.status == "ABORTED" else list(t2.write_set.keys())
 
-                for key in common_keys:
-                    edge_added = False
+                    t1_keys = set(list(t1.read_set.keys()) + t1_write_keys)
+                    t2_keys = set(list(t2.read_set.keys()) + t2_write_keys)
+                    common_keys = t1_keys & t2_keys
 
-                    # T1 read, T2 wrote same key
-                    if key in t1.read_set and key in t2.write_set:
-                        self._add_edge(t1.tid, t2.tid)
-                        print(f"  {t1.tid} READ '{key}' before {t2.tid} WROTE it  →  {t1.tid} → {t2.tid}")
-                        edge_added = True
+                    for key in common_keys:
+                        edge_added = False
+                        t1_has_write = (key in t1.write_set) and (t1.status != "ABORTED")
+                        t2_has_write = (key in t2.write_set) and (t2.status != "ABORTED")
 
-                    # T1 wrote, T2 read same key
-                    if key in t1.write_set and key in t2.read_set and not edge_added:
-                        self._add_edge(t1.tid, t2.tid)
-                        print(f"  {t1.tid} WROTE '{key}' before {t2.tid} READ it  →  {t1.tid} → {t2.tid}")
-                        edge_added = True
+                        # T1 read, T2 wrote same key
+                        if key in t1.read_set and t2_has_write:
+                            self._add_edge(t1.tid, t2.tid)
+                            print(f"  {t1.tid} READ '{key}' before {t2.tid} WROTE it  →  {t1.tid} → {t2.tid}")
+                            edge_added = True
 
-                    # T1 wrote, T2 wrote same key
-                    if key in t1.write_set and key in t2.write_set and not edge_added:
-                        self._add_edge(t1.tid, t2.tid)
-                        print(f"  {t1.tid} WROTE '{key}' before {t2.tid} WROTE it →  {t1.tid} → {t2.tid}")
+                        # T1 wrote, T2 read same key
+                        if t1_has_write and key in t2.read_set and not edge_added:
+                            self._add_edge(t1.tid, t2.tid)
+                            print(f"  {t1.tid} WROTE '{key}' before {t2.tid} READ it  →  {t1.tid} → {t2.tid}")
+                            edge_added = True
+
+                        # T1 wrote, T2 wrote same key
+                        if t1_has_write and t2_has_write and not edge_added:
+                            self._add_edge(t1.tid, t2.tid)
+                            print(f"  {t1.tid} WROTE '{key}' before {t2.tid} WROTE it →  {t1.tid} → {t2.tid}")
 
         print(f"\n  Final Graph: {self.graph}")
 

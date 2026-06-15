@@ -1,0 +1,46 @@
+{
+  "scenario_name": "Ultimate Correctness Stress Test",
+  "isolation_level": "READ_COMMITTED",
+  "initial_data": {
+    "A": 100,
+    "B": 200,
+    "C": 300
+  },
+  "transactions": [
+    {
+      "tid": "T1",
+      "operations": [
+        {"op":"READ","key":"A"},
+        {"op":"WRITE","key":"A","value":90},
+        {"op":"READ","key":"B"},
+        {"op":"COMMIT"}
+      ]
+    },
+    {
+      "tid":"T2",
+      "operations":[
+        {"op":"READ","key":"B"},
+        {"op":"WRITE","key":"B","value":180},
+        {"op":"READ","key":"A"},
+        {"op":"COMMIT"}
+      ]
+    },
+    {
+      "tid":"T3",
+      "operations":[
+        {"op":"READ","key":"A"},
+        {"op":"READ","key":"C"},
+        {"op":"WRITE","key":"C","value":250},
+        {"op":"COMMIT"}
+      ]
+    },
+    {
+      "tid":"T4",
+      "operations":[
+        {"op":"READ","key":"C"},
+        {"op":"READ","key":"B"},
+        {"op":"COMMIT"}
+      ]
+    }
+  ]
+}

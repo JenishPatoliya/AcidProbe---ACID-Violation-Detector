@@ -22,6 +22,7 @@ def run_scenario(isolation):
     lm  = LockManager(silent=True)
     det = AnomalyDetector()
 
+    db.data = {}
     db.init_data("balance", 1000)
 
     T1 = Transaction("T1", start_ts=1, isolation=isolation)
@@ -117,62 +118,66 @@ def run_scenario(isolation):
 # ─────────────────────────────────────────────
 # MAIN — run all 4 isolation levels
 # ─────────────────────────────────────────────
-isolation_levels = [
-    "READ_UNCOMMITTED",
-    "READ_COMMITTED",
-    "REPEATABLE_READ",
-    "SERIALIZABLE"
-]
+def run():
+    isolation_levels = [
+        "READ_UNCOMMITTED",
+        "READ_COMMITTED",
+        "REPEATABLE_READ",
+        "SERIALIZABLE"
+    ]
 
-log.print_header(
-    "Isolation Level Switcher — Same Scenario, 4 Levels",
-    "ALL LEVELS"
-)
-
-all_results = []
-
-for level in isolation_levels:
-    console.print()
-    console.rule(f"[bold yellow]Running: {level}[/bold yellow]")
-    result = run_scenario(level)
-    all_results.append(result)
-
-# ─────────────────────────────────────────────
-# FINAL COMPARISON TABLE
-# ─────────────────────────────────────────────
-console.print()
-console.rule("[bold cyan]FINAL COMPARISON TABLE[/bold cyan]")
-console.print()
-
-table = Table(
-    title="Isolation Level Comparison — Banking Scenario",
-    box=box.ROUNDED,
-    border_style="cyan",
-    title_style="bold cyan"
-)
-
-table.add_column("Isolation Level",     style="white",  width=22)
-table.add_column("Dirty Read",          style="white",  width=14)
-table.add_column("Non-Repeatable",      style="white",  width=16)
-table.add_column("Lost Update",         style="white",  width=14)
-table.add_column("Final Balance",       style="white",  width=15)
-table.add_column("Correct?",            style="white",  width=10)
-
-for r in all_results:
-    table.add_row(
-        r["isolation"],
-        "[red]⚠️  YES[/red]"   if r["dirty_read"]     else "[green]✅ NO[/green]",
-        "[red]⚠️  YES[/red]"   if r["non_repeatable"] else "[green]✅ NO[/green]",
-        "[red]⚠️  YES[/red]"   if r["lost_update"]    else "[green]✅ NO[/green]",
-        f"[red]{r['final_balance']}[/red]"   if not r["correct"] else f"[green]{r['final_balance']}[/green]",
-        "[green]✅ YES[/green]" if r["correct"]        else "[red]❌ NO[/red]",
+    log.print_header(
+        "Isolation Level Switcher — Same Scenario, 4 Levels",
+        "ALL LEVELS"
     )
 
-console.print(table)
+    all_results = []
 
-console.print()
-console.print("[bold white]Key Takeaway:[/bold white]")
-console.print("  [cyan]READ UNCOMMITTED[/cyan]  → allows all anomalies ❌")
-console.print("  [cyan]READ COMMITTED[/cyan]    → fixes dirty read only")
-console.print("  [cyan]REPEATABLE READ[/cyan]   → fixes dirty + non-repeatable")
-console.print("  [cyan]SERIALIZABLE[/cyan]      → fixes everything ✅ (but slowest)")
+    for level in isolation_levels:
+        console.print()
+        console.rule(f"[bold yellow]Running: {level}[/bold yellow]")
+        result = run_scenario(level)
+        all_results.append(result)
+
+    # ─────────────────────────────────────────────
+    # FINAL COMPARISON TABLE
+    # ─────────────────────────────────────────────
+    console.print()
+    console.rule("[bold cyan]FINAL COMPARISON TABLE[/bold cyan]")
+    console.print()
+
+    table = Table(
+        title="Isolation Level Comparison — Banking Scenario",
+        box=box.ROUNDED,
+        border_style="cyan",
+        title_style="bold cyan"
+    )
+
+    table.add_column("Isolation Level",     style="white",  width=22)
+    table.add_column("Dirty Read",          style="white",  width=14)
+    table.add_column("Non-Repeatable",      style="white",  width=16)
+    table.add_column("Lost Update",         style="white",  width=14)
+    table.add_column("Final Balance",       style="white",  width=15)
+    table.add_column("Correct?",            style="white",  width=10)
+
+    for r in all_results:
+        table.add_row(
+            r["isolation"],
+            "[red]⚠️  YES[/red]"   if r["dirty_read"]     else "[green]✅ NO[/green]",
+            "[red]⚠️  YES[/red]"   if r["non_repeatable"] else "[green]✅ NO[/green]",
+            "[red]⚠️  YES[/red]"   if r["lost_update"]    else "[green]✅ NO[/green]",
+            f"[red]{r['final_balance']}[/red]"   if not r["correct"] else f"[green]{r['final_balance']}[/green]",
+            "[green]✅ YES[/green]" if r["correct"]        else "[red]❌ NO[/red]",
+        )
+
+    console.print(table)
+
+    console.print()
+    console.print("[bold white]Key Takeaway:[/bold white]")
+    console.print("  [cyan]READ UNCOMMITTED[/cyan]  → allows all anomalies ❌")
+    console.print("  [cyan]READ COMMITTED[/cyan]    → fixes dirty read only")
+    console.print("  [cyan]REPEATABLE READ[/cyan]   → fixes dirty + non-repeatable")
+    console.print("  [cyan]SERIALIZABLE[/cyan]      → fixes everything ✅ (but slowest)")
+
+if __name__ == "__main__":
+    run()

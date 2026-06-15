@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+
+body {
+    color: #000000;
+    background-color: #ffffff;
+}
+</style>
+</head>
+<body>
+    <pre style="font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><code style="font-family:inherit">
+┌────────────────────────────────────────┐
+│ 🔬 AcidProbe — ACID Violation Detector │
+│ Choose a scenario to simulate          │
+└────────────────────────────────────────┘
+
+  1  →  UPI Payment (Lost Update Check)
+  2  →  Bank Transfer Race (Opposite-Order Deadlock Check)
+  3  →  Ticket Booking (Overbooking Check)
+  4  →  Inventory Overselling (Concurrent Checkout Check)
+  5  →  Deadlock Demo (Graph Resolution Demo)
+  6  →  Isolation Level Switcher (Side-by-Side Comparison)
+  7  →  Load config.json (Custom File)
+  0  →  Exit
+
+  Choose option: 
+┌────────────────────────────────────────────────────────────────┐
+│ AcidProbe — ACID Violation Detector                            │
+│ Scenario  : Isolation Level Switcher — Same Scenario, 4 Levels │
+│ Isolation : ALL LEVELS                                         │
+└────────────────────────────────────────────────────────────────┘
+
+────────────────────────── Running: READ_UNCOMMITTED ──────────────────────────
+  ⚠️  DIRTY READ: T1 read uncommitted value 800 written by T2
+  ⚠️  NON-REPEATABLE READ: T1 read 1000 first, now reads 800
+  ⚠️  LOST UPDATE: Final balance=800, Expected=500
+
+─────────────────────────── Running: READ_COMMITTED ───────────────────────────
+  ✅ No Dirty Read: T1 still sees 1000
+  ⚠️  NON-REPEATABLE READ: T1 read 1000 first, now reads 800
+  ⚠️  LOST UPDATE: Final balance=800, Expected=500
+
+────────────────────────── Running: REPEATABLE_READ ───────────────────────────
+  ✅ No Dirty Read: T1 still sees 1000
+  ✅ No Non-Repeatable Read: T1 still sees 1000
+  ⚠️  LOST UPDATE: Final balance=800, Expected=500
+
+──────────────────────────── Running: SERIALIZABLE ────────────────────────────
+  ✅ No Dirty Read: T1 still sees 1000
+  ✅ No Non-Repeatable Read: T1 still sees 1000
+  ✅ No Lost Update: Final balance=500 ✅
+
+─────────────────────────── FINAL COMPARISON TABLE ────────────────────────────
+
+                 Isolation Level Comparison — Banking Scenario                 
+┌───────────────────┬───────────┬─────────────┬───────────┬───────────┬───────┐
+│                   │ Dirty     │             │ Lost      │ Final     │       │
+│ Isolation Level   │ Read      │ Non-Repeat… │ Update    │ Balance   │ Corr… │
+├───────────────────┼───────────┼─────────────┼───────────┼───────────┼───────┤
+│ READ_UNCOMMITTED  │ ⚠️  YES   │ ⚠️  YES     │ ⚠️  YES   │ 800       │ ❌ NO │
+│ READ_COMMITTED    │ ✅ NO     │ ⚠️  YES     │ ⚠️  YES   │ 800       │ ❌ NO │
+│ REPEATABLE_READ   │ ✅ NO     │ ✅ NO       │ ⚠️  YES   │ 800       │ ❌ NO │
+│ SERIALIZABLE      │ ✅ NO     │ ✅ NO       │ ✅ NO     │ 500       │ ✅    │
+│                   │           │             │           │           │ YES   │
+└───────────────────┴───────────┴─────────────┴───────────┴───────────┴───────┘
+
+Key Takeaway:
+  READ UNCOMMITTED  → allows all anomalies ❌
+  READ COMMITTED    → fixes dirty read only
+  REPEATABLE READ   → fixes dirty + non-repeatable
+  SERIALIZABLE      → fixes everything ✅ (but slowest)
+
+  Press Enter to return to menu...
+┌────────────────────────────────────────┐
+│ 🔬 AcidProbe — ACID Violation Detector │
+│ Choose a scenario to simulate          │
+└────────────────────────────────────────┘
+
+  1  →  UPI Payment (Lost Update Check)
+  2  →  Bank Transfer Race (Opposite-Order Deadlock Check)
+  3  →  Ticket Booking (Overbooking Check)
+  4  →  Inventory Overselling (Concurrent Checkout Check)
+  5  →  Deadlock Demo (Graph Resolution Demo)
+  6  →  Isolation Level Switcher (Side-by-Side Comparison)
+  7  →  Load config.json (Custom File)
+  0  →  Exit
+
+  Choose option: 
+Goodbye! 👋
+
+
+</code></pre>
+</body>
+</html>

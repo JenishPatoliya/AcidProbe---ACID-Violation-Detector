@@ -128,7 +128,6 @@ class Logger:
         all_anomalies = {
             "DIRTY READ":           "Use READ COMMITTED",
             "NON-REPEATABLE READ":  "Use REPEATABLE READ",
-            "PHANTOM READ":         "Use SERIALIZABLE",
             "LOST UPDATE":          "Use REPEATABLE READ",
         }
 
@@ -193,4 +192,148 @@ class Logger:
         for v in versions:
             table.add_row(str(v["value"]), str(v["ts"]), v["by"])
 
+        console.print(table)
+
+    # ─────────────────────────────────────
+    # TIMELINE VIEW
+    # ─────────────────────────────────────
+    def print_timeline(self, transactions, steps):
+        from rich.table import Table
+        from rich import box
+
+        console.print()
+        console.rule("[bold yellow]EXECUTION TIMELINE[/bold yellow]")
+        console.print()
+
+        # get all transaction ids
+        tids = list(transactions.keys())
+
+        # build table
+        table = Table(
+            box=box.SIMPLE,
+            border_style="cyan",
+            show_header=True,
+            header_style="bold cyan"
+        )
+
+        # add columns
+        table.add_column("STEP", style="white", width=8)
+        table.add_column("TIME", style="cyan",  width=6)
+        for tid in tids:
+            table.add_column(tid, width=32)
+
+        # add rows
+        for step in steps:
+            row = [""] * len(tids)
+            tid_index = tids.index(step["tid"])
+
+            # build cell content
+            op = step["op"]
+            key = step.get("key", "")
+            val = step.get("value")
+            status = step.get("status", "ok")
+            note = step.get("note", "")
+
+            if status == "ok":
+                if op == "READ":
+                    cell = f"[green]READ {key} → {val}[/green]"
+                elif op == "WRITE":
+                    cell = f"[yellow]WRITE {key} = {val}[/yellow]"
+                elif op == "COMMIT":
+                    cell = f"[green]COMMIT ✅[/green]"
+                elif op == "ROLLBACK":
+                    cell = f"[red]ROLLBACK ❌[/red]"
+                else:
+                    cell = f"[white]{op}[/white]"
+
+            elif status == "wait":
+                cell = f"[yellow]⏳ {op} {key} — WAITING[/yellow]"
+
+            elif status == "deadlock":
+                cell = f"[red]💀 DEADLOCK — ABORTED[/red]"
+
+            else:
+                cell = f"[white]{op}[/white]"
+
+            # add note if any
+            if note:
+                cell += f"\n[red]{note}[/red]"
+
+            row[tid_index] = cell
+
+            # fill empty cells with vertical line
+            for i in range(len(tids)):
+                if row[i] == "":
+                    row[i] = "[dim]│[/dim]"
+
+            table.add_row(
+                f"[white]{step['step']}[/white]",
+                f"[cyan]t={step['step']}[/cyan]",
+                *row
+            )
+
+        console.print(table)
+
+        # print anomaly markers below timeline
+        anomaly_steps = [s for s in steps if s.get("status") in ["wait", "deadlock"]]
+        if anomaly_steps:
+            console.print()
+            for s in anomaly_steps:
+                if s["status"] == "wait":
+                    console.print(
+                        f"  [yellow]⚠️  STEP {s['step']} — {s['tid']} blocked "
+                        f"on {s.get('key','')} — potential anomaly point[/yellow]"
+                    )
+                elif s["status"] == "deadlock":
+                    console.print(
+                        f"  [red]💀 STEP {s['step']} — DEADLOCK at {s['tid']}[/red]"
+                    )
+        console.print()
+
+    def log_step_with_locks(self, step_num, tid, operation, key, value, status, lock_log, lock_table_str):
+        # print main step
+        self.log_step(step_num, tid, operation, key, value, status)
+
+        # print lock events
+        for event in lock_log:
+            level = event.get("level", "info")
+            msg   = event["message"]
+            if level == "ok":
+                console.print(f"         [green]{msg}[/green]")
+            elif level == "wait":
+                console.print(f"         [yellow]{msg}[/yellow]")
+            elif level == "release":
+                console.print(f"         [blue]{msg}[/blue]")
+            elif level == "deadlock":
+                console.print(f"         [red]{msg}[/red]")
+            else:
+                console.print(f"         [white]{msg}[/white]")
+
+        # print lock table
+        if lock_table_str == "(empty)":
+            console.print(f"         [dim]Lock Table: (empty)[/dim]")
+        else:
+            console.print(f"         [dim]Lock Table: {lock_table_str}[/dim]")
+
+        console.print()
+
+    def print_statistics_report(self, stats):
+        console.print()
+        console.rule("[bold cyan]EXECUTION STATISTICS[/bold cyan]")
+        console.print()
+        
+        table = Table(
+            box=box.ROUNDED,
+            border_style="cyan",
+            show_header=False
+        )
+        table.add_column("Metric", style="cyan", width=25)
+        table.add_column("Value", style="green", width=15)
+        
+        table.add_row("Transactions Executed", str(stats["txn_executed"]))
+        table.add_row("Transactions Aborted", str(stats["txn_aborted"]))
+        table.add_row("Deadlocks Detected", str(stats["deadlocks_detected"]))
+        table.add_row("Lock Conflicts", str(stats["lock_conflicts"]))
+        table.add_row("Total Wait Steps", str(stats["total_wait_time"]))
+        
         console.print(table)

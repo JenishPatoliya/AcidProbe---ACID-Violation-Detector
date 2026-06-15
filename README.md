@@ -15,7 +15,6 @@ The project features rich terminal visualizations for execution steps, transacti
     *   *Dirty Reads*
     *   *Non-Repeatable Reads*
     *   *Lost Updates*
-    *   *Phantom Reads*
 *   **Serializability Checker**: Builds a Precedence (Conflict) Graph based on data conflicts and checks if the concurrent schedule is equivalent to a serial schedule.
 
 ---
@@ -35,7 +34,7 @@ AcidProb/
 ├── scenarios/
 │   ├── deadlock_demo.py         # Simulates and resolves a deadlock scenario
 │   └── isolation_switcher.py    # Runs the same banking withdrawal under all 4 isolation levels
-├── main.py                      # Default Banking Withdrawal simulation entry point
+├── acidprobe.py                 # Central Launcher with CLI & Menu interfaces
 ├── .gitignore                   # Ignores pycache and environments
 └── README.md                    # Project documentation
 ```
@@ -66,26 +65,29 @@ AcidProb/
 
 ## 💻 Running the Simulations
 
-### 1. Default Banking Scenario (Lost Update check under READ COMMITTED)
-Runs the simulation where two transactions withdraw from the same balance concurrently under the `READ COMMITTED` isolation level, demonstrating a **Lost Update** and a **Non-Repeatable Read**.
+### 1. Interactive Menu Launcher
+Starts the main menu launcher where you can run built-in real-world scenarios (UPI Payment, Bank Transfer race conditions, Ticket Booking, and Inventory Overselling), run the deadlock resolution demonstration, or isolate switcher checks:
 
 ```bash
-python main.py
+python acidprobe.py
 ```
 
-### 2. Isolation Switcher Scenario
-Executes the concurrent withdrawal scenario under all four ANSI SQL isolation levels (`READ UNCOMMITTED`, `READ COMMITTED`, `REPEATABLE READ`, and `SERIALIZABLE`) and outputs a side-by-side comparison table showing which anomalies are prevented.
+### 2. Run Custom Scenario directly via Config File
+Loads and runs a custom transactional schedule defined inside `config.json` directly without entering the interactive menu:
+
+```bash
+python acidprobe.py --config config.json
+```
+
+### 3. Isolation Switcher Scenario
+Executes a concurrent withdrawal scenario under all four ANSI SQL isolation levels (`READ UNCOMMITTED`, `READ COMMITTED`, `REPEATABLE READ`, and `SERIALIZABLE`) and outputs a side-by-side comparison table showing which anomalies are prevented:
 
 ```bash
 python scenarios/isolation_switcher.py
 ```
 
-### 3. Deadlock Demo
-Simulates a classic deadlock scenario where:
-*   `T1` holds a lock on `balance` and waits for `account`.
-*   `T2` holds a lock on `account` and waits for `balance`.
-
-It displays the deadlock detection, visualizes the Wait-For Graph, selects the youngest transaction (`T2`) to abort, releases its locks, and allows `T1` to complete.
+### 4. Deadlock Demo
+Simulates a classic deadlock scenario, visualizes the Wait-For Graph, selects the youngest transaction (`T2`) to abort, releases its locks, rolls back its modifications, and allows `T1` to complete:
 
 ```bash
 python scenarios/deadlock_demo.py
@@ -111,12 +113,12 @@ In [core/lock_manager.py](./core/lock_manager.py), transactions request `S` or `
 
 ### 2. Transaction Isolation Levels
 
-| Isolation Level | Dirty Read | Non-Repeatable Read | Lost Update | Phantom Read |
-| :--- | :---: | :---: | :---: | :---: |
-| **READ UNCOMMITTED** | ❌ Allowed | ❌ Allowed | ❌ Allowed | ❌ Allowed |
-| **READ COMMITTED** | ✅ Prevented | ❌ Allowed | ❌ Allowed | ❌ Allowed |
-| **REPEATABLE READ** | ✅ Prevented | ✅ Prevented | ❌ Allowed | ❌ Allowed |
-| **SERIALIZABLE** | ✅ Prevented | ✅ Prevented | ✅ Prevented | ✅ Prevented |
+| Isolation Level | Dirty Read | Non-Repeatable Read | Lost Update |
+| :--- | :---: | :---: | :---: |
+| **READ UNCOMMITTED** | ❌ Allowed | ❌ Allowed | ❌ Allowed |
+| **READ COMMITTED** | ✅ Prevented | ❌ Allowed | ❌ Allowed |
+| **REPEATABLE READ** | ✅ Prevented | ✅ Prevented | ❌ Allowed |
+| **SERIALIZABLE** | ✅ Prevented | ✅ Prevented | ✅ Prevented |
 
 ---
 
