@@ -35,6 +35,8 @@ AcidProb/
 │   ├── deadlock_demo.py         # Simulates and resolves a deadlock scenario
 │   └── isolation_switcher.py    # Runs the same banking withdrawal under all 4 isolation levels
 ├── acidprobe.py                 # Central Launcher with CLI & Menu interfaces
+├── save_output.py               # Exporter script to save scenario outputs
+├── outputs/                     # Generated simulation outputs (.txt and .html)
 ├── .gitignore                   # Ignores pycache and environments
 └── README.md                    # Project documentation
 ```
@@ -92,6 +94,17 @@ Simulates a classic deadlock scenario, visualizes the Wait-For Graph, selects th
 ```bash
 python scenarios/deadlock_demo.py
 ```
+
+### 5. Saving Simulation Outputs (Text & HTML)
+To run the primary scenarios (banking, deadlock, and isolation) automatically and export both plain text outputs (with ANSI color styling stripped for readability) and fully colorized HTML outputs:
+
+```bash
+python save_output.py
+```
+This generates the following files in the `outputs/` directory:
+*   `outputs/banking.txt` & `outputs/banking.html`
+*   `outputs/deadlock.txt` & `outputs/deadlock.html`
+*   `outputs/isolation.txt` & `outputs/isolation.html`
 
 ---
 
