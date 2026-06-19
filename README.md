@@ -74,16 +74,28 @@ flowchart TD
 
 ```bash
 AcidProbe/
-├── core/
-│   ├── data_store.py            # MVCC engine & version control chains
-│   ├── detector.py              # Anomaly inspection suite
-│   ├── lock_manager.py          # Lock table scheduler & DFS cycle detector
-│   ├── serializable_checker.py  # Precedence graph compiler
-│   └── transaction.py           # Transaction models & state controls
-├── config.json                  # Local configuration template file
-├── streamlit_app.py             # Streamlit application UI & renderer
-├── .gitignore                   # Standard Python cache/venv exclusion patterns
-└── README.md                    # Project documentation
+├── core/                          # Core concurrency engine
+│   ├── __init__.py                # Package exports
+│   ├── data_store.py              # MVCC engine & version control chains
+│   ├── detector.py                # Anomaly inspection suite
+│   ├── lock_manager.py            # Lock table scheduler & DFS cycle detector
+│   ├── serializable_checker.py    # Precedence graph compiler
+│   └── transaction.py             # Transaction models & state controls
+├── tests/                         # 95 unit & integration tests
+│   ├── test_transaction.py        # Transaction state machine tests
+│   ├── test_data_store.py         # MVCC read/write visibility tests
+│   ├── test_lock_manager.py       # Lock compatibility & deadlock tests
+│   ├── test_detector.py           # Anomaly detection tests
+│   ├── test_serializable_checker.py  # Precedence graph & cycle tests
+│   └── test_integration.py        # End-to-end scenario tests
+├── scenarios.py                   # Preset scenarios & anomaly metadata
+├── runner.py                      # Simulation runner (pure logic, no UI)
+├── renderer.py                    # Streamlit UI rendering functions
+├── streamlit_app.py               # App entry point & orchestrator
+├── config.json                    # Local configuration template file
+├── requirements.txt               # Python dependencies
+├── .gitignore                     # Standard Python cache/venv exclusion patterns
+└── README.md                      # Project documentation
 ```
 
 ---
@@ -113,6 +125,12 @@ Fire up the local development server:
 streamlit run streamlit_app.py
 ```
 The application will launch automatically in your default browser at `http://localhost:8501`.
+
+### 4. Run Tests
+Run the full test suite (95 tests):
+```bash
+python -m unittest discover tests/ -v
+```
 
 ---
 
